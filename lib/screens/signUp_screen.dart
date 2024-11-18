@@ -1,9 +1,14 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:yenebuna/constants/colors.dart';
+import 'package:yenebuna/screens/login_screen.dart';
+import 'package:yenebuna/services/auth_service.dart';
 
 import '../widgets/bottom_clipper.dart';
 
 class SignUpPage extends StatefulWidget {
+  static const String id = 'signup';
   const SignUpPage({super.key});
 
   @override
@@ -18,7 +23,33 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController confirmPasswordController =
       TextEditingController();
 
+  final FirebaseAuthService _authService = FirebaseAuthService();
   OverlayEntry? _overlayEntry;
+
+  void _signUp() async {
+    String email = emailController.text.trim();
+    String password = passwordController.text.trim();
+    String confirmPassword = confirmPasswordController.text.trim();
+    String name = nameController.text.trim();
+
+    try {
+      User? user = await _authService.signUpWithEmail(
+        email: email,
+        password: password,
+        confirmPassword: confirmPassword,
+        name: name,
+      );
+
+      if (user != null) {
+        // Navigate to the home or another screen after successful sign-up
+        Navigator.pushNamed(context, SignUpPage.id);
+      }
+    } catch (e) {
+      // Handle any errors (e.g., show a Snackbar)
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+    }
+  }
 
   @override
   void dispose() {
@@ -63,11 +94,11 @@ class _SignUpPageState extends State<SignUpPage> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
                       color: Colors.black26,
                       blurRadius: 10,
-                      offset: const Offset(0, 4),
+                      offset: Offset(0, 4),
                     ),
                   ],
                 ),
@@ -76,14 +107,12 @@ class _SignUpPageState extends State<SignUpPage> {
                   children: [
                     // Sign Up and Sign In buttons
                     Padding(
-                      padding: EdgeInsets.symmetric(vertical: 18),
+                      padding: const EdgeInsets.symmetric(vertical: 18),
                       child: Container(
                         width: MediaQuery.of(context).size.width * 0.6,
                         height: 50,
                         decoration: BoxDecoration(
-                          color: isSignUpSelected
-                              ? AppColors.tertiaryColor
-                              : AppColors.mainColor,
+                          color: AppColors.mainColor,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
@@ -104,7 +133,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                       : AppColors.mainColor,
                                   borderRadius: BorderRadius.circular(20),
                                 ),
-                                child: Center(
+                                child: const Center(
                                   child: Text(
                                     "Sign Up",
                                     style: TextStyle(
@@ -131,7 +160,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                       : AppColors.mainColor,
                                   borderRadius: BorderRadius.circular(20),
                                 ),
-                                child: Center(
+                                child: const Center(
                                   child: Text(
                                     "Sign In",
                                     style: TextStyle(
@@ -150,11 +179,10 @@ class _SignUpPageState extends State<SignUpPage> {
                     // Form content
                     Expanded(
                       child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 35),
-                        child: isSignUpSelected
-                            ? _signupContent(context)
-                            : _signinContent(context),
-                      ),
+                          padding: const EdgeInsets.symmetric(horizontal: 35),
+                          child: isSignUpSelected
+                              ? _signupContent(context)
+                              : LoginScreen()),
                     ),
                   ],
                 ),
@@ -168,14 +196,12 @@ class _SignUpPageState extends State<SignUpPage> {
                     child: Material(
                       color: Colors.transparent,
                       child: GestureDetector(
-                        onTap: () {
-                          _removeOverlay();
-                        },
+                        onTap: () {},
                         child: Container(
                           color: Colors.black.withOpacity(0.5),
                           width: 200,
                           height: 100,
-                          child: Center(child: Text('Overlay Content')),
+                          child: const Center(child: Text('Overlay Content')),
                         ),
                       ),
                     ),
@@ -183,46 +209,8 @@ class _SignUpPageState extends State<SignUpPage> {
                 : Container(),
           ],
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            _showOverlay(context);
-          },
-          child: Icon(Icons.add),
-        ),
       ),
     );
-  }
-
-  // Show overlay
-  void _showOverlay(BuildContext context) {
-    final overlay = Overlay.of(context);
-    _overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        bottom: 50,
-        left: 50,
-        child: Material(
-          color: Colors.transparent,
-          child: GestureDetector(
-            onTap: () {
-              _removeOverlay();
-            },
-            child: Container(
-              color: Colors.black.withOpacity(0.5),
-              width: 200,
-              height: 100,
-              child: Center(child: Text('Overlay Content')),
-            ),
-          ),
-        ),
-      ),
-    );
-    overlay.insert(_overlayEntry!);
-  }
-
-  // Remove overlay
-  void _removeOverlay() {
-    _overlayEntry?.remove();
-    _overlayEntry = null;
   }
 
   // Custom text field widget
@@ -238,65 +226,105 @@ class _SignUpPageState extends State<SignUpPage> {
       keyboardType: keyboardType,
       decoration: InputDecoration(
         labelText: labelText,
-        labelStyle: TextStyle(color: AppColors.tertiaryColor),
-        enabledBorder: UnderlineInputBorder(
+        labelStyle: const TextStyle(color: AppColors.tertiaryColor),
+        enabledBorder: const UnderlineInputBorder(
           borderSide: BorderSide(color: Colors.black),
         ),
-        focusedBorder: UnderlineInputBorder(
+        focusedBorder: const UnderlineInputBorder(
           borderSide: BorderSide(color: AppColors.mainColor),
         ),
       ),
     );
   }
 
-  // Sign-up form
+// Sign-up form
   Widget _signupContent(BuildContext context) {
     return Column(
       children: [
         _customTextField(labelText: 'Name', controller: nameController),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
         _customTextField(
           labelText: 'Email',
           controller: emailController,
           keyboardType: TextInputType.emailAddress,
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
         _customTextField(
           labelText: 'Password',
           controller: passwordController,
           obscureText: true,
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
         _customTextField(
           labelText: 'Confirm Password',
           controller: confirmPasswordController,
           obscureText: true,
         ),
-      ],
-    );
-  }
+        SizedBox(height: 30.h),
 
-  // Sign-in form
-  Widget _signinContent(BuildContext context) {
-    return Column(
-      children: [
-        _customTextField(
-          labelText: 'Email',
-          controller: emailController,
-          keyboardType: TextInputType.emailAddress,
+        // Sign Up Button
+        SizedBox(
+          width: double.infinity,
+          height: 49.h,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.mainColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(25),
+              ),
+            ),
+            onPressed: () async {
+              _signUp();
+            },
+            child: const Text(
+              'Sign Up',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         ),
-        SizedBox(height: 20),
-        _customTextField(
-          labelText: 'Password',
-          controller: passwordController,
-          obscureText: true,
-        ),
-        SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: () {
-            // Add sign-in logic here
-          },
-          child: Text('Sign In'),
+        const SizedBox(height: 20),
+
+        // Social Media Icons
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              onPressed: () {
+                // Add Google sign-up logic
+              },
+              icon: Image.asset(
+                'Assets/images/Google.png',
+                height: 30,
+                width: 30,
+              ),
+            ),
+            const SizedBox(width: 20),
+            IconButton(
+              onPressed: () {
+                // Add Apple sign-up logic
+              },
+              icon: Image.asset(
+                'Assets/images/apple.png',
+                height: 30,
+                width: 30,
+              ),
+            ),
+            const SizedBox(width: 20),
+            IconButton(
+              onPressed: () {
+                // Add Instagram sign-up logic
+              },
+              icon: Image.asset(
+                'Assets/images/instagram.png',
+                height: 30,
+                width: 30,
+              ),
+            ),
+          ],
         ),
       ],
     );

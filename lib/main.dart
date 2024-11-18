@@ -4,7 +4,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:yenebuna/constants/colors.dart';
 import 'package:yenebuna/firebase_options.dart';
+import 'package:yenebuna/screens/home_screen.dart';
 import 'package:yenebuna/screens/onboarding.dart';
+import 'package:yenebuna/screens/signUp_screen.dart';
+import 'package:yenebuna/screens/splash_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,6 +34,14 @@ class MyApp extends StatelessWidget {
               scaffoldBackgroundColor: AppColors.backgroundColor,
               colorSchemeSeed: AppColors.mainColor,
               textTheme: GoogleFonts.inriaSansTextTheme()),
+              initialRoute: SplashScreen.id ,
+              routes: {
+                SplashScreen.id:(context) => SplashScreen(),
+                OnboardingPage.id:(context) => OnboardingPage(),
+                SignUpPage.id:(context) => SignUpPage(),
+            //    LoginScreen.id:(context) => LoginScreen(),
+                HomeScreen.id:(context) => HomeScreen(),
+              },
           home: const OnboardingPage(),
         );
       },
