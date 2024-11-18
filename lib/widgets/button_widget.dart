@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:yenebuna/constants/colors.dart';
 
 
-class Button extends StatelessWidget {
+class ButtonWidget extends StatelessWidget {
   final double width;
   final double height;
   final Color color;
@@ -11,7 +11,7 @@ class Button extends StatelessWidget {
   final VoidCallback onPressed;
   final TextStyle? textStyle;
 
-  const Button({
+  const ButtonWidget({
     super.key,
     required this.text,
     required this.onPressed,
