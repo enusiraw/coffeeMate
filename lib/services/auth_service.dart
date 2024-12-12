@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print, unused_local_variable
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -60,12 +62,12 @@ class FirebaseAuthService {
         email = querySnapshot.docs.first['email'];
       }
 
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: email!,
-        password: password,
-      );
+      // UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      //   email: email!,
+      //   password: password,
+      // );
 
-      User? user = userCredential.user;
+     // User? user = userCredential.user;
 
       // // Check if the email is verified
       // if (user != null && !user.emailVerified) {
@@ -81,6 +83,7 @@ class FirebaseAuthService {
       print('Error during login: $e');
       throw e.toString();
     }
+    return null;
   }
 
   // Google Sign-In

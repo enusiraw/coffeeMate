@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -6,6 +8,7 @@ import 'package:yenebuna/constants/colors.dart';
 import 'package:yenebuna/firebase_options.dart';
 import 'package:yenebuna/screens/home_screen.dart';
 import 'package:yenebuna/screens/onboarding.dart';
+import 'package:yenebuna/screens/post.dart';
 import 'package:yenebuna/screens/signUp_screen.dart';
 import 'package:yenebuna/screens/splash_screen.dart';
 
@@ -37,12 +40,13 @@ class MyApp extends StatelessWidget {
               initialRoute: SplashScreen.id ,
               routes: {
                 SplashScreen.id:(context) => SplashScreen(),
-                OnboardingPage.id:(context) => OnboardingPage(),
-                SignUpPage.id:(context) => SignUpPage(),
+                OnboardingPage.id:(context) => const OnboardingPage(),
+                SignUpPage.id:(context) => const SignUpPage(),
             //    LoginScreen.id:(context) => LoginScreen(),
-                HomeScreen.id:(context) => HomeScreen(),
+                HomeScreen.id:(context) => const HomeScreen(),
+                PostPage.id:(context) => PostPage()
               },
-          home: const OnboardingPage(),
+          home: const HomeScreen(),
         );
       },
     );

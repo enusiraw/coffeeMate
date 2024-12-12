@@ -1,7 +1,10 @@
+// ignore_for_file: file_names, use_build_context_synchronously, prefer_const_constructors
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:yenebuna/constants/colors.dart';
+import 'package:yenebuna/screens/home_screen.dart';
 import 'package:yenebuna/screens/login_screen.dart';
 import 'package:yenebuna/services/auth_service.dart';
 
@@ -275,6 +278,7 @@ class _SignUpPageState extends State<SignUpPage> {
             ),
             onPressed: () async {
               _signUp();
+             Navigator.pushNamed(context,HomeScreen.id);
             },
             child: const Text(
               'Sign Up',

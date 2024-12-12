@@ -45,6 +45,12 @@ dependencies:
   cloud_firestore: ^5.5.0
   google_sign_in_ios: ^5.7.8
   google_sign_in: ^6.2.2
+  image_picker: ^1.1.2
+  location: ^7.0.1
+  firebase_storage: ^12.3.6
+  provider: ^6.1.2
+  motion_tab_bar: ^2.0.4
+  motion_tab_bar_v2: ^0.3.0
 
 dev_dependencies:
   flutter_test:

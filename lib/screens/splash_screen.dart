@@ -1,13 +1,16 @@
-// ignore_for_file: prefer_const_constructors
+// ignore_for_file: prefer_const_constructors, library_private_types_in_public_api
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:yenebuna/screens/home_screen.dart';
 import 'package:yenebuna/screens/onboarding.dart';
 import 'package:yenebuna/screens/signUp_screen.dart';
 import 'package:yenebuna/services/auth_service.dart';
 
 class SplashScreen extends StatefulWidget {
   static const String id = "splashScreen";
+
+  const SplashScreen({super.key});
 
   @override
   _SplashScreenState createState() => _SplashScreenState();
@@ -44,7 +47,7 @@ class _SplashScreenState extends State<SplashScreen> {
     bool isLoggedIn = await authService.isLoggedIn();
 
     if (isLoggedIn) {
-      _navigateTo(SignUpPage.id);
+      _navigateTo(HomeScreen.id);
     } else {
       _navigateTo(SignUpPage.id);
     }
