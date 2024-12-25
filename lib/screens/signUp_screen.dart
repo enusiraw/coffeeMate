@@ -1,24 +1,24 @@
 // ignore_for_file: file_names, use_build_context_synchronously, prefer_const_constructors
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yenebuna/constants/colors.dart';
+import 'package:yenebuna/provider/auth_service.dart';
 import 'package:yenebuna/screens/home_screen.dart';
 import 'package:yenebuna/screens/login_screen.dart';
 import 'package:yenebuna/services/auth_service.dart';
 
 import '../widgets/bottom_clipper.dart';
 
-class SignUpPage extends StatefulWidget {
+class SignUpPage extends ConsumerStatefulWidget {
   static const String id = 'signup';
   const SignUpPage({super.key});
 
   @override
-  State<SignUpPage> createState() => _SignUpPageState();
+  ConsumerState<SignUpPage> createState() => _SignUpPageState();
 }
 
-class _SignUpPageState extends State<SignUpPage> {
+class _SignUpPageState extends ConsumerState<SignUpPage> {
   bool isSignUpSelected = true;
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
@@ -29,31 +29,31 @@ class _SignUpPageState extends State<SignUpPage> {
   final FirebaseAuthService _authService = FirebaseAuthService();
   OverlayEntry? _overlayEntry;
 
+   // Sign-up handler using Riverpod's authProvider
   void _signUp() async {
-    String email = emailController.text.trim();
-    String password = passwordController.text.trim();
-    String confirmPassword = confirmPasswordController.text.trim();
-    String name = nameController.text.trim();
+    final authNotifier = ref.read(authProvider.notifier);
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+    final confirmPassword = confirmPasswordController.text.trim();
+    final name = nameController.text.trim();
 
-    try {
-      User? user = await _authService.signUpWithEmail(
-        email: email,
-        password: password,
-        confirmPassword: confirmPassword,
-        name: name,
+    await authNotifier.signUpWithEmail(
+      email: email,
+      password: password,
+      confirmPassword: confirmPassword,
+      name: name,
+    );
+
+    final authState = ref.read(authProvider);
+
+    if (authState.user != null) {
+      Navigator.pushNamed(context, HomeScreen.id);
+    } else if (authState.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(authState.errorMessage!)),
       );
-
-      if (user != null) {
-        // Navigate to the home or another screen after successful sign-up
-        Navigator.pushNamed(context, SignUpPage.id);
-      }
-    } catch (e) {
-      // Handle any errors (e.g., show a Snackbar)
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
-
   @override
   void dispose() {
     nameController.dispose();
@@ -65,6 +65,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
     return GestureDetector(
       onTap: () {
         // Dismiss the keyboard when tapping outside of the text fields
@@ -184,7 +185,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 35),
                           child: isSignUpSelected
-                              ? _signupContent(context)
+                              ? _signupContent()
                               : LoginScreen()),
                     ),
                   ],
@@ -241,7 +242,9 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
 // Sign-up form
-  Widget _signupContent(BuildContext context) {
+    Widget _signupContent() {
+    final authState = ref.watch(authProvider);
+
     return Column(
       children: [
         _customTextField(labelText: 'Name', controller: nameController),
@@ -263,12 +266,12 @@ class _SignUpPageState extends State<SignUpPage> {
           controller: confirmPasswordController,
           obscureText: true,
         ),
-        SizedBox(height: 30.h),
+        SizedBox(height: 30),
 
-        // Sign Up Button
+        // Sign-Up Button
         SizedBox(
           width: double.infinity,
-          height: 49.h,
+          height: 49,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.mainColor,
@@ -276,18 +279,17 @@ class _SignUpPageState extends State<SignUpPage> {
                 borderRadius: BorderRadius.circular(25),
               ),
             ),
-            onPressed: () async {
-              _signUp();
-             Navigator.pushNamed(context,HomeScreen.id);
-            },
-            child: const Text(
-              'Sign Up',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            onPressed: authState.isLoading ? null : _signUp,
+            child: authState.isLoading
+                ? CircularProgressIndicator(color: Colors.white)
+                : const Text(
+                    'Sign Up',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
           ),
         ),
         const SizedBox(height: 20),
@@ -333,4 +335,5 @@ class _SignUpPageState extends State<SignUpPage> {
       ],
     );
   }
+
 }

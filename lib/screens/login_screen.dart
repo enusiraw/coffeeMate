@@ -1,29 +1,144 @@
-// ignore_for_file: prefer_const_constructors, avoid_print, use_build_context_synchronously
-
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:yenebuna/constants/colors.dart';
-import 'package:yenebuna/screens/home_screen.dart'; // Import your home screen
-import 'package:yenebuna/services/auth_service.dart';
+import 'package:yenebuna/provider/auth_service.dart';
+import 'package:yenebuna/screens/home_screen.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   static const String id = 'login';
 
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final FirebaseAuthService _authService = FirebaseAuthService();
 
-  bool _isLoading = false; // To track loading state
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  // Login method using Riverpod's authProvider
+  Future<void> _login() async {
+    final authNotifier = ref.read(authProvider.notifier);
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      _showErrorDialog('Please fill in both email and password');
+      return;
+    }
+
+    try {
+      await authNotifier.loginWithEmail(email, password);
+      final authState = ref.read(authProvider);
+
+      if (authState.user != null) {
+        // Check if email is verified
+        if (!authState.user!.emailVerified) {
+          _showEmailVerificationDialog();
+        } else {
+          // Navigate to Home screen
+          Navigator.pushReplacementNamed(context, HomeScreen.id);
+        }
+      } else if (authState.errorMessage != null) {
+        _showErrorDialog(authState.errorMessage!);
+      }
+    } catch (error) {
+      _showErrorDialog(error.toString());
+    }
+  }
+
+  // Show email verification dialog if the email is not verified
+  void _showEmailVerificationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Email Verification'),
+          content: Text('Please verify your email address before logging in.'),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                // Send verification email if not already sent
+                try {
+                  final authNotifier = ref.read(authProvider.notifier);
+                  await authNotifier.sendEmailVerification();
+                  Navigator.of(context).pop();
+                  _showInfoDialog(
+                      'Verification email sent. Please check your inbox.');
+                } catch (e) {
+                  Navigator.of(context).pop();
+                  _showErrorDialog('Failed to send verification email.');
+                }
+              },
+              child: Text('Resend Email'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Show information dialog
+  void _showInfoDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Info'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Error dialog to display login issues
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Login Failed'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+
     return Column(
       children: [
         // Email TextField
@@ -72,7 +187,7 @@ class _LoginScreenState extends State<LoginScreen> {
               print('Forgot Password clicked');
             },
             child: Text(
-              'forgot password?',
+              'Forgot password?',
               style: TextStyle(
                 color: Colors.blue,
                 fontSize: 14.sp,
@@ -94,9 +209,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 borderRadius: BorderRadius.circular(25.r),
               ),
             ),
-            onPressed:
-                _isLoading ? null : _login, // Disable button when loading
-            child: _isLoading
+            onPressed: authState.isLoading ? null : _login,
+            child: authState.isLoading
                 ? CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                   )
@@ -114,7 +228,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Padding(
           padding: EdgeInsets.symmetric(vertical: 10.h),
           child: Text(
-            'continue with',
+            'Continue with',
             style: TextStyle(
               fontSize: 12.sp,
               fontWeight: FontWeight.w600,
@@ -162,56 +276,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ],
         ),
       ],
-    );
-  }
-
-  // Login method to handle sign-in
-  void _login() async {
-    String email = _emailController.text;
-    String password = _passwordController.text;
-
-    if (email.isEmpty || password.isEmpty) {
-      _showErrorDialog('Please fill in both email and password');
-    } else {
-      setState(() {
-        _isLoading =
-            true;
-      });
-
-      try {
-        // Call the AuthService login method
-        await _authService.loginWithEmailName(email, password);
-
-        // Navigate to Home page after successful login
-        Navigator.pushReplacementNamed(context, HomeScreen.id);
-      } catch (error) {
-        _showErrorDialog(error.toString());
-      } finally {
-        setState(() {
-          _isLoading = false; // Set loading state to false after login process
-        });
-      }
-    }
-  }
-
-  // Show error dialog if there is an issue with login
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Login Failed'),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('OK'),
-            ),
-          ],
-        );
-      },
     );
   }
 }

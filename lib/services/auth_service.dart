@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print, unused_local_variable
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -42,6 +40,7 @@ class FirebaseAuthService {
     }
   }
 
+ 
   Future<User?> loginWithEmailName(String identifier, String password) async {
     try {
       String? email;
@@ -49,7 +48,7 @@ class FirebaseAuthService {
       if (identifier.contains('@')) {
         email = identifier;
       } else {
-        // Fetch email based on name if not an email
+        
         QuerySnapshot querySnapshot = await _firestore
             .collection('Users')
             .where('name', isEqualTo: identifier)
@@ -62,20 +61,21 @@ class FirebaseAuthService {
         email = querySnapshot.docs.first['email'];
       }
 
-      // UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-      //   email: email!,
-      //   password: password,
-      // );
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: email!,
+        password: password,
+      );
 
-     // User? user = userCredential.user;
+      User? user = userCredential.user;
 
-      // // Check if the email is verified
-      // if (user != null && !user.emailVerified) {
-      //   await _auth.signOut();
-      //   throw 'Please verify your email before logging in.';
-      // }
+      if (user != null && !user.emailVerified) {
+        await sendEmailVerification(); 
+        await _auth
+            .signOut(); 
+        throw 'Please verify your email before logging in.';
+      }
 
-      // return user;
+      return user;
     } on FirebaseAuthException catch (e) {
       print('Login error: $e');
       throw e.message ?? 'Unknown error occurred';
@@ -83,10 +83,28 @@ class FirebaseAuthService {
       print('Error during login: $e');
       throw e.toString();
     }
-    return null;
   }
 
-  // Google Sign-In
+
+  Future<void> sendEmailVerification() async {
+    try {
+      User? user = _auth.currentUser;
+      if (user == null) {
+        throw 'No user is logged in.';
+      }
+
+      if (user.emailVerified) {
+        throw 'Your email is already verified.';
+      }
+
+      await user.sendEmailVerification();
+      print('Verification email sent.');
+    } catch (e) {
+      print('Error sending verification email: $e');
+      throw 'Failed to send verification email: $e';
+    }
+  }
+
   Future<User?> signInWithGoogle() async {
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn();
@@ -106,13 +124,11 @@ class FirebaseAuthService {
 
         User? user = userCredential.user;
 
-        // Check if the user already exists in Firestore
         if (user != null) {
           DocumentSnapshot userDoc =
               await _firestore.collection('users').doc(user.uid).get();
 
           if (!userDoc.exists) {
-            // Add new user to Firestore
             await _firestore.collection('users').doc(user.uid).set({
               'name': googleUser.displayName ?? 'Anonymous',
               'email': user.email,
@@ -132,7 +148,27 @@ class FirebaseAuthService {
     }
   }
 
-// Method to check if the user is logged in
+ 
+  Future<void> signOut() async {
+    try {
+      await _auth.signOut();
+      await GoogleSignIn().signOut(); 
+    } catch (e) {
+      print('Sign Out error: $e');
+      throw e.toString();
+    }
+  }
+
+  Future<User?> getCurrentUser() async {
+    try {
+      User? user = _auth.currentUser;
+      return user;
+    } catch (e) {
+      print('Error getting current user: $e');
+      throw e.toString();
+    }
+  }
+
   Future<bool> isLoggedIn() async {
     User? user = _auth.currentUser;
     return user != null;

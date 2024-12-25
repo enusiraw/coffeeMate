@@ -51,6 +51,7 @@ dependencies:
   provider: ^6.1.2
   motion_tab_bar: ^2.0.4
   motion_tab_bar_v2: ^0.3.0
+  flutter_riverpod: ^2.6.1
 
 dev_dependencies:
   flutter_test:
