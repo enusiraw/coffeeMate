@@ -1,28 +1,39 @@
 // ignore_for_file: non_constant_identifier_names
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class PostModel {
   final String userId;
-  final String title;
-  final String body;
+  final String text;
   final DateTime posted_time;
-  final int like_count;
-  final int comment_count;
+  final int likes;
+  final int comments;
 
-  PostModel(
-      {required this.userId,
-      required this.body,
-      required this.like_count,
-      required this.posted_time,
-      required this.title,
-      required this.comment_count});
+  PostModel({
+    required this.userId,
+    required this.text,
+    required this.posted_time,
+    required this.likes,
+    required this.comments,
+  });
 
   factory PostModel.fromFirestore(Map<String, dynamic> doc, String id) {
     return PostModel(
-        userId: doc["userId"],
-        body: doc["body"],
-        like_count: doc["like_count"] ?? 0,
-        posted_time: doc["posted_time"],
-        title: doc["title"],
-        comment_count: doc["comment_count"] ?? 0);
+      userId: doc["userId"],
+      text: doc["text"],
+      posted_time: (doc["timestamp"] as Timestamp).toDate(),
+      likes: doc["likes"] ?? 0,
+      comments: doc["comments"] ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toFirestore() {
+    return {
+      "userId": userId,
+      "text": text,
+      "timestamp": Timestamp.fromDate(posted_time),
+      "likes": likes,
+      "comments": comments,
+    };
   }
 }
