@@ -1,7 +1,9 @@
+// ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; 
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:yenebuna/constants/colors.dart';
-import 'package:yenebuna/screens/post.dart';
 
 class HomeScreen extends StatefulWidget {
   static const String id = 'home';
@@ -30,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (user != null) {
       setState(() {
-        userName = user.displayName ?? 'No Name'; 
+        userName = user.displayName ?? 'No Name';
         userEmail = user.email ?? 'No Email';
       });
     }
@@ -42,51 +44,41 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
         backgroundColor: AppColors.mainColor,
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Image.asset(
-            'Assets/images/logo.png',
-            fit: BoxFit.contain,
-          ),
+        leading: Builder(
+          builder: (BuildContext context) {
+            return IconButton(
+              onPressed: () {
+                Scaffold.of(context).openDrawer();
+              },
+              icon: const Icon(Icons.menu, color: AppColors.backgroundColor),
+            );
+          },
+        ),
+        title: Image.asset(
+          'Assets/images/logo.png',
+          fit: BoxFit.contain,
+          height: 50.h,
         ),
         actions: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, HomeScreen.id);
-                  print('Post button clicked');
-                },
-                child: const Text(
-                  'Post',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+          Positioned(
+            right: 8.0,
+            top: 8.0,
+            child: CircleAvatar(
+              backgroundImage: NetworkImage(
+                "https://img.freepik.com/premium-photo/side-view-woman-holding-hands_1048944-16242081.jpg?t=st=1735202078~exp=1735202678~hmac=5936aa51ed6289efa8d03b9f1fdf4e87823988e2b479a6fd42d6f7b94dfdc86c",
               ),
-              const SizedBox(width: 10),
-              // Coffee Mates Button
-              TextButton(
-                onPressed: () {
-                  print('Coffee Mates button clicked');
-                },
-                child: const Text(
-                  'Coffee Mates',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-            ],
+            ),
           ),
         ],
       ),
+      drawer: Drawer(
+          child: ListView(padding: EdgeInsets.zero, children: <Widget>[
+        ListTile(
+          leading: Icon(Icons.home),
+          title: Text('Home'),
+          onTap: () {},
+        ),
+      ])),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -112,8 +104,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               )
-            else
-              const CircularProgressIndicator(), 
           ],
         ),
       ),

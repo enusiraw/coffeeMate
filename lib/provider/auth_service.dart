@@ -3,8 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:yenebuna/provider/auth.dart';
 import 'package:yenebuna/services/auth_service.dart';
 
-
-// AuthService that interacts with FirebaseAuthService
 class AuthNotifier extends StateNotifier<AuthState> {
   final FirebaseAuthService _authService;
 
@@ -21,7 +19,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
- // Send email verification
   Future<void> sendEmailVerification() async {
     try {
       await _authService.sendEmailVerification();
@@ -31,7 +28,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  // Method to handle sign-up
   Future<void> signUpWithEmail({
     required String email,
     required String password,
@@ -52,13 +48,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  // Method to handle sign-out
   Future<void> signOut() async {
     await _authService.signOut();
     state = state.copyWith(user: null);
   }
 
-  // Check if user is logged in
   Future<void> checkUserStatus() async {
     try {
       User? user = await _authService.getCurrentUser();
@@ -69,7 +63,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 }
 
-// AuthProvider using StateNotifierProvider
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   final authService = FirebaseAuthService();
   return AuthNotifier(authService);
